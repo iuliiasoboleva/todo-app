@@ -4,7 +4,7 @@ import Task from '../Task';
 import TaskEditForm from '../TaskEditForm';
 import { ITodo } from '../../types';
 import TaskForm from '../TaskForm';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 
 const TaskList: React.FC = () => {
   const [tasks, setTasks] = useState<ITodo[]>([]);
