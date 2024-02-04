@@ -1,27 +1,21 @@
-// Task.tsx
 import React from 'react';
+import { ITaskProps } from '../../types';
 
-interface TaskProps {
-  task: {
-    id: number;
-    title: string;
-    description: string;
-    date: string;
-  };
-  onDelete: (taskId: number) => void;
-}
-
-const Task: React.FC<TaskProps> = ({ task, onDelete }) => {
-  const handleDelete = () => {
-    onDelete(task.id);
-  };
-
+const Task: React.FC<ITaskProps> = ({ task, onDelete, handleEdit }) => {
   return (
-    <div>
-      <h3>{task.title}</h3>
-      <p>{task.description}</p>
-      <p>Date: {task.date}</p>
-      <button onClick={handleDelete}>Delete</button>
+    <div className="border p-4 my-4 bg-black shadow-md rounded-md">
+      <h3 className="text-gray-400 text-xl font-bold mb-2">{task.title}</h3>
+      <p className="text-gray-400  mb-2">Description: {task.description}</p>
+      <p className="text-sm text-gray-400 mb-2">Date: {task.date}</p>
+      <button
+        className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:border-blue-300 mr-1"
+        onClick={() => handleEdit(task)}>Edit</button>
+      <button
+        onClick={() => onDelete(task.id)}
+        className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 focus:outline-none focus:ring focus:border-blue-300"
+      >
+        Delete
+      </button>
     </div>
   );
 };

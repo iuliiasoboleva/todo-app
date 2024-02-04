@@ -1,49 +1,81 @@
-// TaskList.tsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Task from '../Task';
 import TaskEditForm from '../TaskEditForm';
+import { ITodo } from '../../types';
+import TaskForm from '../TaskForm';
+import { v4 as uuidv4 } from 'uuid';
 
-interface ITodo {
-    userId: number;
-    id: number;
-    title: string;
-    completed: boolean;
-  }
-  
 const TaskList: React.FC = () => {
-  const [tasks, setTasks] = useState([]);
-  const [editingTask, setEditingTask] = useState(null);
+  const [tasks, setTasks] = useState<ITodo[]>([]);
+  const [editingTask, setEditingTask] = useState<ITodo | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    axios.get('https://jsonplaceholder.typicode.com/todos')
-      .then(response => setTasks(response.data))
-      .catch(error => console.error(error));
+    fetchTasks();
   }, []);
 
-  const handleDelete = (taskId: number) => {
-    console.log('Delete task with id:', taskId);
+  const fetchTasks = () => {
+    axios.get('https://jsonplaceholder.typicode.com/todos')
+      .then(response => {
+        setTasks(response.data);
+        setError(null);
+      })
+      .catch(error => {
+        setError('Error fetching tasks');
+        console.error(error);
+      });
   };
-  const handleEdit = (task: React.SetStateAction<null>) => {
+
+  const handleDelete = (taskId: number | string) => {
+    axios.delete(`https://jsonplaceholder.typicode.com/todos/${taskId}`)
+      .then(response => {
+        if (response.status === 200) {
+          setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+          setError(null);
+        }
+      })
+      .catch(error => {
+        setError('Error deleting task');
+        console.error(error);
+      });
+  };
+
+  const handleEdit = (task: ITodo) => {
     setEditingTask(task);
   };
 
-  const handleSaveEdit = (taskId: any, title: any, description: any, date: any) => {
-    console.log('Save edit for task with id:', taskId);
-    setEditingTask(null);
+  const handleSaveEdit = (editedTask: ITodo) => {
+    axios.put(`https://jsonplaceholder.typicode.com/todos/${editedTask.id}`, editedTask)
+      .then(response => {
+        if (response.status === 200) {
+          setTasks(prevTasks => prevTasks.map(task => (task.id === editedTask.id ? editedTask : task)));
+          setEditingTask(null);
+          setError(null);
+        }
+      })
+      .catch(error => {
+        setError('Error saving edit');
+        console.error(error);
+      });
+  };
+
+  const handleAddTask = (newTask: { title: string, description: string, date: string }) => {
+    setTasks(prevTasks => [{ id: uuidv4(), ...newTask }, ...prevTasks]);
   };
 
   return (
     <div>
-      <h1>Task List</h1>
+      {error && <div className="text-red-500">{error}</div>}
+      <TaskForm handleAddTask={handleAddTask} />
+      <h1 className='text-center font-bold text-3xl mt-3'>Task List</h1>
       {tasks.map((task, index) => (
         <div key={index}>
           {editingTask === task ? (
             <TaskEditForm task={task} onSave={handleSaveEdit} />
           ) : (
-            <Task task={task} onDelete={handleDelete} />
+            <Task task={task} onDelete={handleDelete} handleEdit={handleEdit} />
           )}
-          <button onClick={() => handleEdit(task)}>Edit</button>
         </div>
       ))}
     </div>
